@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Deciding Rochester with Evolution</title>
+    </head>
+    <style>
+            * { padding: 0; margin: 0; }
+            canvas { background: rgb(241, 229, 229); display: block; margin: 0 auto; float: left; }
+        </style>
+    <body>
+        Hi! This app utilizes genetic algorithms to figure out how I can better the world.
+        A genetic algorithm is a computer program that imitates the process of evolution to
+        solve a complex problem such as deciding how I can best improve the world and
+        achieve my goals. In this simulation, the dots are put into couples that breed to create
+        the next generation, which will be better at achieving my life goals than the previous one.
+        <canvas  onmousemove="mouse_position(event)" id="evocanvas" width="480" height="480"></canvas>
+        <canvas id="couplecanvas" width="480" height="240"></canvas>
+        <pre>
+
+
+
+        </pre>
+        <div id="descbox">Descriptions of each location will appear hear when the mouse is on them</div>
+    </body>
+    <script>
+    var mouseX = 0;
+    var mouseY = 0;
+    class Location{
+        constructor(score,x,y,left,right, name, desc){
+            this.score = score;
+            this.description = desc;
+            this.x = x;
+            this.y = y;
+            this.left = left;
+            this.right = right;
+            this.name = name;
+            this.drawn = false;
+
+        } 
+        resetDraws(){
+            this.drawn = false;
+            if(this.left!=null){this.left.resetDraws()}
+            if(this.right!=null){this.right.resetDraws()}
+            if((mouseX-this.x>0&&mouseX-this.x<ctx.measureText(this.name).width)&&Math.abs(this.y-mouseY)<10){
+                document.getElementById("descbox").innerHTML = this.description;
+            }
+        }
+        draw(){
+            if(!this.drawn){
+            this.drawn = true;
+            //recursively draws, I realize this is not best practice
+            ctx.beginPath();
+            ctx.moveTo(this.x,this.y);
+            if(this.left!=null){ctx.lineTo(this.left.x,this.left.y);}
+            ctx.moveTo(this.x,this.y);
+            if(this.right!=null){ctx.lineTo(this.right.x,this.right.y);}
+            ctx.strokeStyle = "white";
+            ctx.stroke();
+            ctx.closePath();
+            ctx.fillText(this.name,this.x,this.y);
+            if(this.left!=null){this.left.draw();}
+            if(this.right!=null){this.right.draw();}
+            }
+        }
+    }
+    function mouse_position(e)
+    {
+        var br = e.target.getBoundingClientRect();
+        mouseX = e.clientX-br.left;
+        mouseY = e.clientY-br.top;
+        console.log(mouseX+","+mouseY);
+    }
+    class Person {
+        constructor(decisions,color){
+            this.decisions=decisions;
+            this.color=color;
+            this.x = 0;
+            this.y = 240;
+            this.speed = 3+Math.random()*4;
+            this.onDecision = 0;
+        }
+        breed(other){
+            var dec = [];
+            dec.length = this.decisions.length;
+            for(var i = 0; i<this.decisions.length; i++){
+                if(Math.random()<.5){
+                    dec[i] = this.decisions[i];
+                }else{
+                    dec[i] = other.decisions[i];
+                }
+            }
+            return new Person(dec,this.color);
+        }
+        draw(){
+            drawCircle(this.x,this.y,this.color);
+        }
+        moveTowards(x){
+            if(Math.abs(this.x-x.x)<this.speed && Math.abs(this.y-x.y)<this.speed){
+                return true;
+            }
+            var angle = Math.atan2(this.y-x.y,this.x-x.x);
+            var xmove = Math.cos(angle)*this.speed;
+            var ymove = Math.sin(angle)*this.speed;
+            this.x-=xmove;
+            this.y-=ymove;
+            return false;
+        }
+    }
+    var canvas = document.getElementById("evocanvas");
+    var ctx = canvas.getContext("2d"); 
+    //construct location tree
+    startup = new Location(2,400,60,null,null,"Join a Startup", "Joining an innovative startup is a great way for me to use the skills I obtained at Rochester to better the world");
+    owncompany = new Location(3,400,120,null,null,"Found a Startup","Founding a startup would be the best way for me to present the ideas and skills I learn at Rochester to the world");
+    ultra = new Location(1,365,180,null,null,"Work/Life Balance Focus", "Living in Boulder means I would have daily access to running trails, and access to one of the fastest growing cities in the US, a great place to live happily");
+    cubefarm = new Location(0,400,300,null,null,"Stuck in a Cubicle", "Being stuck in a cubicle would stop me from showing the world any of my ideas, or changing the world in any significant way");
+    follow = new Location(-1,300,440,cubefarm,cubefarm,"Follow Work","Following work would prevent me from living in a good location, but it would be a necessity for someone with the common skill of a bussiness degree");
+    home = new Location(-1,300,340,cubefarm,cubefarm,"Go Back Home","Going back home would mean I would spend time living with my parents, and I would have to deal with the reprecussions of being someone that never made it out of their home town");
+    svbad = new Location(-1,300,280,cubefarm,cubefarm,"Silicon Valley", "Silicon Valley is a great place for people with advanced qualifications, but a difficult place to live with minimal qualifications, such as a bachelors in just CS or Math");
+    boulder = new Location(-1,340,220,ultra,ultra,"Boulder","Boulder is the mecca of distance running, and also has a thriving bussiness scene. Being highly qualified after my Rochester education, I could find work in Boulder");
+    svgood = new Location(-1,300,120,owncompany,startup,"Silicon Valley", "Silicon Valley is the cradle of US innovation. The triple degree I could achieve at Rochester would prepare me well to compete in this innovative environment");
+    b = new Location(-1,200,400,home,follow,"Business Degree","If I pursued business at a school without a flexible curriculum, it would preclude me from being able to take the math or CS classes I would need for a triple major.");
+    mcs = new Location(-1,200,300,svbad,home,"Math/CS Degree","If I pursued math or CS at a school without a flexible curriculum, it would preclude me from being able to take the business classes I would need for a triple major.");
+    mcsb = new Location(-1,200,165,svgood,boulder,"Math/CS/Business Degree","Rochester's cluster system allows for extreme flexibility in the classes I take, which would give me the opportunity to explore all my passions, most likely resulting in a triple major.");
+    otherschool = new Location(-1,100,340,mcs,b,"A Different Schoool", "A school other than University of Rochester was chosen by this dot.");
+    rochester = new Location(-1,50,180,mcsb,mcsb,"University of Rochester", "Rochester was chosen by this dot");
+    strt = new Location(-1,0,240,rochester,otherschool,"Start","Start");
+    //build initial population
+    var population = [];
+    for(var i=0; i< 50; i++){
+        population.push(randomPerson());
+    }
+    let counter = 0;
+    let gen = 0;
+    //keep stepping through generations forever
+   setInterval(function(){
+       strt.resetDraws();
+        counter+=1;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            strt.draw();
+            ctx.fillText("Generation:"+gen,0,20);
+            for(i = 0; i< population.length; i++){
+                var arrived = population[i].moveTowards(getNextLocation(population[i].onDecision,population[i].decisions));
+                population[i].draw();
+                if(arrived){
+                    population[i].onDecision+=1;
+                    if(population[i].onDecision>4){
+                        population[i].onDecision--;
+                    }
+                }
+            }
+        if(counter%180==0){
+        gen+=1;
+        //choose what population survives
+        var newpop = [];
+        for(i = 0; i< population.length; i++){
+            var score = getNextLocation(4,population[i].decisions).score;
+            if(Math.random()*4<score+1){
+                newpop.push(new Person(population[i].decisions,population[i].color));
+            }
+        }
+        population = newpop;
+        //higher scoring members become more likely to breed
+        var addpop = [];
+        for(i = 0; i< population.length; i++){
+            var score = getNextLocation(4,population[i].decisions).score;
+            for(j = 0; j<score; j++){
+                addpop.push(new Person(population[i].decisions,population[i].color));
+            }
+        }
+        population = population.concat(addpop);
+        //breed surviving population
+        newpop = []
+        var cv = document.getElementById("couplecanvas");
+        var contex = cv.getContext("2d");
+        contex.clearRect(0,0,cv.width,cv.height);
+        contex.fillText("Current Couples----------------------------------------------------------------------------------------------------------------------------------------",10,10);
+        while(newpop.length<20){
+            var pers1 = population[Math.floor(Math.random()*population.length)];
+            var pers2 = population[Math.floor(Math.random()*population.length)];
+            let xx =50+70*(newpop.length%5);
+            let yy = 50+50*Math.floor(newpop.length/5);
+            drawCircleCouple(xx,yy,pers1.color);
+            drawCircleCouple(xx+25,yy,pers2.color);
+            newpop.push(pers1.breed(pers2));
+        }
+        population = newpop;
+    }
+    },70);
+    function getNextLocation(dec,decisions){
+        //traverse location tree base on decision array
+        let ret = strt;
+        for(l = 0; l<dec; l++){
+            if(decisions[l]==0){
+                ret = ret.left;
+            }else{
+                ret = ret.right;
+            }
+        }
+        return ret;
+    }
+    function drawCircle(x,y,color){
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, Math.PI*2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.fillStyle = "black";
+        ctx.closePath();
+    }
+    function randomPerson(){
+        var col = '#'+Math.random().toString(16).substr(-6);
+        var dec = [];
+        for(j = 0; j<4; j++){
+            dec.push(Math.round(Math.random()));
+        }
+        return new Person(dec,col);
+    }
+    function drawCircleCouple(x,y,color){
+        var cv = document.getElementById("couplecanvas");
+        var contex = cv.getContext("2d");
+        contex.beginPath();
+        contex.arc(x, y, 10, 0, Math.PI*2);
+        contex.fillStyle = color;
+        contex.fill();
+        contex.fillStyle = "black";
+        contex.closePath();
+
+    }
+    
+    </script>
+</html>
