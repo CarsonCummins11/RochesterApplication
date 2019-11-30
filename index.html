@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--https://carsoncummins11.github.io/RochesterApplication/-->
 <html>
     <head>
         <title>Deciding Rochester with Evolution</title>
@@ -8,11 +9,9 @@
             canvas { background: rgb(241, 229, 229); display: block; margin: 0 auto; float: left; }
         </style>
     <body>
-        Hi! This app utilizes genetic algorithms to figure out how I can better the world.
-        A genetic algorithm is a computer program that imitates the process of evolution to
-        solve a complex problem such as deciding how I can best improve the world and
-        achieve my goals. In this simulation, the dots are put into couples that breed to create
-        the next generation, which will be better at achieving my life goals than the previous one.
+        Hi! In case you haven't read the explanation yet, I recomend you read that first.
+        It explains the genetic algorithm that this app uses, and why I thought I should
+        explain my decision with it. 
         <canvas  onmousemove="mouse_position(event)" id="evocanvas" width="480" height="480"></canvas>
         <canvas id="couplecanvas" width="480" height="240"></canvas>
         <pre>
@@ -68,7 +67,6 @@
         var br = e.target.getBoundingClientRect();
         mouseX = e.clientX-br.left;
         mouseY = e.clientY-br.top;
-        console.log(mouseX+","+mouseY);
     }
     class Person {
         constructor(decisions,color){
